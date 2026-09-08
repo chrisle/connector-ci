@@ -54,6 +54,14 @@ reusable one, and needs `id-token: write` at both levels. Renaming a caller
 breaks publishing for that package until its trusted publisher config on npmjs
 is updated to match.
 
+### alphatheta-connect is not on these
+
+It checks out `metadata-connect` and `onelibrary-connect` alongside itself and
+builds both from source, because it consumes them through `file:` paths rather
+than the registry. That layout does not fit a shared workflow, so it keeps its
+own copy. `make test-connector-releases` in the nowplaying3 repo covers it
+instead.
+
 ## Inputs
 
 | input | default | |
