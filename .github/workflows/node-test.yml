@@ -1,0 +1,52 @@
+# Test workflow shared by the Now Playing connector libraries.
+#
+# Deliberately runs the same Node and npm as node-publish.yml. A gate on an
+# older npm still runs the dependency install scripts npm 12 blocks, so it goes
+# green over exactly the breakage that then fails on main.
+name: Connector Test
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: Node version to test on. Keep in step with node-publish.yml.
+        type: string
+        default: '24'
+      run-build:
+        description: Run `npm run build` after the tests.
+        type: boolean
+        default: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Upgrade npm to match the publish job
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: |
+          if [ -f "yarn.lock" ]; then
+            npm install -g yarn
+            yarn install --frozen-lockfile
+          elif [ -f "package-lock.json" ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        if: inputs.run-build
+        run: npm run build
